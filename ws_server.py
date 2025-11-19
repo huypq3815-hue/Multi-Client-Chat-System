@@ -15,6 +15,11 @@ import logging
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
 from collections import defaultdict, deque
+import traceback
+
+# server modules
+from server.history_manager import get_default as get_history_manager
+from server.file_transfer import add_chunk as ft_add_chunk, cleanup_expired
 
 # ================= CONFIG =================
 HOST = "0.0.0.0"
@@ -50,7 +55,7 @@ logger.addHandler(file_handler)
 USERS = {}
 USER_ROLES = {}
 TYPING = set()
-HISTORY = []
+HIST = get_history_manager()
 REACTIONS = defaultdict(lambda: defaultdict(int))
 RATE_QUEUE = defaultdict(lambda: deque())
 
@@ -59,7 +64,8 @@ def now_iso():
     return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
 def generate_id():
-    return f"msg_{len(HISTORY)+1:06d}"
+    # id based on current in-memory history length
+    return f"msg_{len(HIST.all())+1:06d}"
 
 def is_valid_username(name: str) -> bool:
     return bool(name and len(name) <= MAX_USERNAME_LEN and re.match(r'^[a-zA-Z0-9_\-\.]+$', name))
@@ -68,19 +74,15 @@ def is_admin(username: str) -> bool:
     return username.lower() in (a.lower() for a in ADMINS)
 
 def load_history():
-    global HISTORY
-    if os.path.exists(HISTORY_FILE):
-        try:
-            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                HISTORY = json.load(f)[-MAX_HISTORY:]
-            logger.info(f"Đã tải {len(HISTORY)} tin nhắn từ lịch sử")
-        except Exception as e:
-            logger.error(f"Lỗi tải lịch sử: {e}")
+    try:
+        HIST.load()
+        logger.info(f"Đã tải {len(HIST.all())} tin nhắn từ lịch sử")
+    except Exception as e:
+        logger.error(f"Lỗi tải lịch sử: {e}")
 
 def save_history():
     try:
-        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(HISTORY[-MAX_HISTORY:], f, ensure_ascii=False, indent=2)
+        HIST.save()
         logger.info("Đã lưu lịch sử")
     except Exception as e:
         logger.error(f"Lỗi lưu lịch sử: {e}")
@@ -88,9 +90,10 @@ def save_history():
 def add_to_history(msg: dict):
     msg["id"] = generate_id()
     msg["time"] = now_iso()
-    HISTORY.append(msg)
-    if len(HISTORY) > MAX_HISTORY:
-        old = HISTORY.pop(0)
+    HIST.add(msg)
+    # trim reactions if necessary
+    if len(HIST.all()) > MAX_HISTORY:
+        old = HIST.all()[0]
         REACTIONS.pop(old.get("id"), None)
 
 def rate_limited(username: str) -> bool:
@@ -113,7 +116,17 @@ async def broadcast(obj: dict, exclude: set = None):
         if not exclude or name not in exclude
     ]
     if tasks:
-        await asyncio.gather(*tasks, return_exceptions=True)
+        # run gather and log any exceptions
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for i, res in enumerate(results):
+            if isinstance(res, Exception):
+                # attempt to identify which user send failed
+                try:
+                    target_name = list(USERS.keys())[i]
+                except Exception:
+                    target_name = f"index:{i}"
+                logger.error(f"Error sending to {target_name}: {res}")
+                logger.debug(traceback.format_exc())
 
 async def send_user_list():
     await broadcast({"type": "user_list", "users": sorted(USERS.keys())})
@@ -139,7 +152,7 @@ async def handle_login(ws, data: dict):
     USER_ROLES[name] = {"admin"} if is_admin(name) else set()
     logger.info(f"{name} đã tham gia → {len(USERS)} online")
 
-    for msg in HISTORY[-100:]:
+    for msg in HIST.recent(100):
         try: await ws.send(json.dumps(msg, ensure_ascii=False))
         except: pass
 
@@ -196,7 +209,59 @@ async def handle_typing(data: dict, username: str):
     is_typing = bool(data.get("isTyping"))
     if is_typing: TYPING.add(username)
     else: TYPING.discard(username)
-    await broadcast({"type": "typing", "from": username, "isTyping": is_typing})
+    # do not broadcast typing event back to sender
+    await broadcast({"type": "typing", "from": username, "isTyping": is_typing}, exclude={username})
+
+
+async def handle_file_chunk(ws, data: dict, username: str):
+    """Handle chunked file upload via messages of type 'file_chunk'.
+
+    Expected data: {
+        'upload_id': str,
+        'index': int,
+        'total': int,
+        'data': base64str,
+        'name': str,
+        'type': str,
+        'size': int
+    }
+    """
+    upload_id = data.get('upload_id')
+    try:
+        index = int(data.get('index', 0))
+        total = int(data.get('total', 0))
+    except Exception:
+        return
+    b64 = data.get('data')
+    meta = {'name': data.get('name', ''), 'type': data.get('type', ''), 'size': data.get('size', 0)}
+    if not (upload_id and b64 and total > 0):
+        return
+
+    # add chunk and check if completed
+    try:
+        raw, meta_ret = ft_add_chunk(upload_id, index, total, b64, meta)
+        logger.debug(f"Received file_chunk upload_id={upload_id} index={index}/{total} from={username}")
+    except Exception as e:
+        logger.error(f"Error in ft_add_chunk for upload_id={upload_id}: {e}")
+        logger.debug(traceback.format_exc())
+        return
+    # cleanup expired uploads from time to time
+    cleanup_expired()
+
+    if raw is not None:
+        # file assembled - check size and broadcast as group message
+        logger.info(f"File assembled upload_id={upload_id} name={meta_ret.get('name','')} size={len(raw)} from={username}")
+        if len(raw) > MAX_FILE_SIZE:
+            await ws.send(json.dumps({"type": "error", "text": "File quá lớn (>3MB)"}))
+            return
+        b64_full = base64.b64encode(raw).decode('ascii')
+        msg = {"type": "group", "from": username, "text": "", "file": {"name": meta_ret.get('name','')[:100], "type": meta_ret.get('type',''), "size": len(raw), "data": b64_full}}
+        add_to_history(msg)
+        try:
+            await broadcast(msg)
+        except Exception as e:
+            logger.error(f"Error broadcasting assembled file upload_id={upload_id}: {e}")
+            logger.debug(traceback.format_exc())
 
 async def handle_reaction(data: dict, username: str):
     msg_id = data.get("id")
@@ -255,19 +320,37 @@ async def handler(ws):
             elif typ == "private": await handle_private(ws, data, username)
             elif typ == "typing": await handle_typing(data, username)
             elif typ == "reaction": await handle_reaction(data, username)
+            elif typ == "file_chunk": await handle_file_chunk(ws, data, username)
 
-    except websockets.ConnectionClosed:
-        pass
+    except websockets.ConnectionClosed as e:
+        # Log close code & reason for diagnostics
+        try:
+            logger.info(f"ConnectionClosed(code={e.code}, reason={e.reason}) for user={username}")
+        except Exception:
+            logger.info(f"ConnectionClosed for user={username}")
     except Exception as e:
-        logger.error(f"Lỗi: {e}")
+        # Log full traceback for debugging
+        logger.error(f"Unhandled exception in handler for user={username}: {e}")
+        logger.debug(traceback.format_exc())
     finally:
         if username and username in USERS:
-            del USERS[username]
+            try:
+                del USERS[username]
+            except Exception:
+                logger.debug(f"Error deleting user from USERS: {traceback.format_exc()}")
             TYPING.discard(username)
             RATE_QUEUE.pop(username, None)
             logger.info(f"{username} đã thoát → {len(USERS)} online")
-            await system_message(f"{username} đã rời phòng chat")
-            await send_user_list()
+            try:
+                await system_message(f"{username} đã rời phòng chat")
+            except Exception as e:
+                logger.error(f"Error broadcasting system_message after {username} left: {e}")
+                logger.debug(traceback.format_exc())
+            try:
+                await send_user_list()
+            except Exception as e:
+                logger.error(f"Error sending user list after {username} left: {e}")
+                logger.debug(traceback.format_exc())
 
 # ================= SERVER START – Windows Compatible =================
 async def main():

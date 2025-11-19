@@ -46,6 +46,36 @@ class ChatClient {
     this.bindEvents();
     this.loadTheme();
     this.populateEmojiPicker();
+    this.setupFileUploadUI();
+  }
+
+  setupFileUploadUI() {
+    // create a hidden file input and an attach button next to sendBtn
+    try {
+      this.fileInput = document.createElement('input');
+      this.fileInput.type = 'file';
+      this.fileInput.style.display = 'none';
+      document.body.appendChild(this.fileInput);
+
+      this.attachBtn = document.getElementById('attachBtn');
+      if (!this.attachBtn) {
+        this.attachBtn = document.createElement('button');
+        this.attachBtn.id = 'attachBtn';
+        this.attachBtn.className = 'btn-icon';
+        this.attachBtn.title = 'Attach file';
+        this.attachBtn.textContent = '📎';
+        // insert before sendBtn
+        this.sendBtn.parentNode.insertBefore(this.attachBtn, this.sendBtn);
+      }
+
+      this.attachBtn.addEventListener('click', () => this.fileInput.click());
+      this.fileInput.addEventListener('change', (e) => {
+        const f = e.target.files[0];
+        if (f) this.uploadFile(f);
+      });
+    } catch (err) {
+      console.error('File upload UI init error', err);
+    }
   }
 
   bindEvents() {
@@ -59,17 +89,21 @@ class ChatClient {
       }
     });
     this.msgInput.addEventListener('input', () => this.handleTyping());
-    this.themeToggle.onclick = () => this.toggleTheme();
-    this.emojiBtn.onclick = () => this.emojiPicker.classList.toggle('hidden');
-    this.sidebarToggle.onclick = () => this.sidebar.classList.toggle('open');
+    if (this.themeToggle) this.themeToggle.onclick = () => this.toggleTheme();
 
-    document.addEventListener('click', (e) => {
-      if (!this.emojiPicker.classList.contains('hidden') &&
-          !this.emojiBtn.contains(e.target) &&
-          !this.emojiPicker.contains(e.target)) {
-        this.emojiPicker.classList.add('hidden');
-      }
-    });
+    // Optional elements: emoji picker and sidebar toggle may not exist in minimal HTML.
+    if (this.emojiBtn && this.emojiPicker) {
+      this.emojiBtn.onclick = () => this.emojiPicker.classList.toggle('hidden');
+      document.addEventListener('click', (e) => {
+        if (!this.emojiPicker.classList.contains('hidden') &&
+            !this.emojiBtn.contains(e.target) &&
+            !this.emojiPicker.contains(e.target)) {
+          this.emojiPicker.classList.add('hidden');
+        }
+      });
+    }
+
+    if (this.sidebarToggle && this.sidebar) this.sidebarToggle.onclick = () => this.sidebar.classList.toggle('open');
   }
 
   connect() {
@@ -86,17 +120,7 @@ class ChatClient {
   connectWebSocket() {
     // Kết nối trực tiếp tới server Python đang chạy ở port 6789
     this.ws = new WebSocket("ws://127.0.0.1:6789");
-
-    this.ws.onopen = () => {
-      this.reconnectAttempts = 0;
-      this.setStatus('online', 'Connected');
-      this.send({ type: 'login', username: this.username });
-    };
-
-    this.ws.onmessage = (evt) => this.handleMessage(JSON.parse(evt.data));
-    this.ws.onclose = () => this.handleDisconnect();
-    this.ws.onerror = () => this.appendSystem('Connection error');
-
+    // Assign handlers once (avoid duplicate assignments)
     this.ws.onopen = () => {
       this.reconnectAttempts = 0;
       this.setStatus('online', 'Connected');
@@ -118,7 +142,13 @@ class ChatClient {
         this.appendSystem(msg.text);
         break;
       case 'group':
-        this.appendMessage(msg.from, msg.text, false, msg.time);
+        // mark message as mine when server echoes back my own message
+        const isMineGroup = msg.from === this.username;
+        if (msg.file) {
+          this.appendMessage(msg.from, msg.text || '', isMineGroup, msg.time, false, null, msg.file);
+        } else {
+          this.appendMessage(msg.from, msg.text, isMineGroup, msg.time);
+        }
         break;
       case 'private':
         const isMine = msg.from === this.username;
@@ -163,6 +193,8 @@ class ChatClient {
   }
 
   appendMessage(from, text, isMine, time, isPrivate = false, privateTo = null) {
+    let file = null;
+    if (arguments.length >= 7) file = arguments[6];
     const row = document.createElement('div');
     row.className = `msg-row ${isMine ? 'mine' : ''}`;
     const color = this.getUserColor(from);
@@ -185,12 +217,21 @@ class ChatClient {
       }
     }
 
+    let fileHtml = '';
+    if (file && file.data) {
+      const href = `data:${file.type || 'application/octet-stream'};base64,${file.data}`;
+      const name = file.name || 'file.bin';
+      const size = file.size || 0;
+      fileHtml = `<div class="msg-file"><a href="${href}" download="${this.escape(name)}">${this.escape(name)} (${size} bytes)</a></div>`;
+    }
+
     bubble.innerHTML = `
       <div class="msg-header">
         <strong style="color: ${color}">${headerText}</strong>
         ${badge}
       </div>
       <div class="msg-body">${this.escape(text).replace(/\n/g, '<br>')}</div>
+      ${fileHtml}
       <div class="msg-meta">${this.formatTime(time)}</div>
     `;
 
@@ -249,10 +290,8 @@ class ChatClient {
       const to = text.slice(1, spaceIdx);
       const body = text.slice(spaceIdx + 1);
       this.send({ type: 'private', to, text: body });
-      this.appendMessage(this.username, body, true, new Date().toISOString(), true, to);
     } else {
       this.send({ type: 'group', text });
-      this.appendMessage(this.username, text, true, new Date().toISOString());
     }
     this.msgInput.value = '';
     this.handleTyping(true);
@@ -345,6 +384,15 @@ class ChatClient {
   }
 
   populateEmojiPicker() {
+    // Ensure emoji picker exists; if not, create a hidden container appended to body
+    if (!this.emojiPicker) {
+      const div = document.createElement('div');
+      div.id = 'emojiPicker';
+      div.className = 'emoji-picker hidden';
+      document.body.appendChild(div);
+      this.emojiPicker = div;
+    }
+
     this.emojiPicker.innerHTML = this.emojis.map(emoji => `<span class="emoji">${emoji}</span>`).join('');
     this.emojiPicker.addEventListener('click', e => {
       if (e.target.classList.contains('emoji')) {
@@ -362,6 +410,42 @@ class ChatClient {
     input.selectionStart = input.selectionEnd = start + text.length;
     input.focus();
     this.handleTyping();
+  }
+
+  // read file in chunks and send as base64-encoded pieces
+  async uploadFile(file) {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      return this.showToast('Not connected', 'error');
+    }
+    const chunkSize = 4096;
+    const total = Math.ceil(file.size / chunkSize);
+    const upload_id = `${this.username || 'u'}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+
+    this.showToast(`Uploading ${file.name} (${file.size} bytes)`, 'success');
+
+    for (let i = 0; i < total; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const blob = file.slice(start, end);
+      const b64 = await this.blobToBase64(blob);
+      this.send({ type: 'file_chunk', upload_id, index: i, total, data: b64, name: file.name, type: file.type, size: file.size });
+      // optional small throttle
+      await new Promise(r => setTimeout(r, 10));
+    }
+    this.showToast(`Upload queued: ${file.name}`, 'success');
+  }
+
+  blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result; // e.g. data:;base64,....
+        const idx = dataUrl.indexOf(',');
+        resolve(dataUrl.slice(idx+1));
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   stringToColor(str) {

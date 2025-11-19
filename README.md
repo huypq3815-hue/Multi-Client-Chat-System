@@ -57,4 +57,77 @@ multi_chat/
 
 ---
 
+## Hướng dẫn chạy (Demo nhanh trên Windows / PowerShell)
+
+Các bước dưới đây giả định bạn đang ở thư mục dự án `Multi-Client-Chat-System`.
+
+1) Chuẩn bị môi trường (một lần):
+
+```powershell
+# chuyển vào thư mục dự án
+cd "..."
+
+# (tùy chọn) tạo virtualenv và kích hoạt
+python -m venv .venv
+. .venv\Scripts\Activate.ps1
+
+# cài dependencies cơ bản
+python -m pip install --upgrade pip
+python -m pip install websockets
+```
+
+2) Chạy WebSocket server (server Python sẽ lắng nghe trên `ws://0.0.0.0:6789`):
+
+```powershell
+python .\ws_server.py
+# Dùng Ctrl+C để dừng server
+```
+
+3) Mở client web (trình duyệt):
+
+Bạn cần serve `index.html` từ thư mục chứa file — không chạy `http.server` từ thư mục khác (sẽ báo 404).
+
+```powershell
+# Từ cùng thư mục dự án
+python -m http.server 8000 --directory .
+# Mở trình duyệt tới: http://localhost:8000/index.html
+```
+
+4) Dùng giao diện web:
+
+- Nhập `username` rồi bấm `Join Chat`.
+- Dùng nút đính kèm (📎) để chọn file, file sẽ được gửi theo chunk và sau khi server lắp lại sẽ hiển thị như một tin nhắn có link tải xuống.
+
+5) Kiểm tra log & debug:
+
+- File log nằm ở `chat.log` trong cùng thư mục; để xem realtime dùng PowerShell:
+
+```powershell
+Get-Content .\chat.log -Wait -Tail 200
+```
+
+- Nếu upload không thành công, kiểm tra:
+	- Kiểm tra console của trình duyệt (F12) để xem WebSocket errors.
+	- Đảm bảo server Python (ws_server.py) đang chạy và không báo lỗi.
+	- Kiểm tra giới hạn kích thước file: hiện tại tối đa là 3MB (hạn chế trong `ws_server.py` -> `MAX_FILE_SIZE`).
+
+6) Chạy server ở background (tùy chọn):
+
+```powershell
+Start-Process -FilePath python -ArgumentList '.\ws_server.py' -PassThru | ForEach-Object { $_.Id } > server_pid.txt
+# Dừng bằng Stop-Process -Id <PID>
+```
+
+7) Dọn dẹp: tôi đã xóa các script tạm (`test_client.py`, `repro_clients.py`, `server/ft_test.py`) khỏi repo.
+
+Nếu bạn gặp lỗi cụ thể khi gửi file (ví dụ toast báo "Upload queued" nhưng file không xuất hiện ở chat), hãy gửi cho tôi:
+- Đoạn log `chat.log` tại thời điểm upload;
+- Console log của trình duyệt (F12) — đặc biệt WebSocket close code/reason;
+- Tên file và kích thước bạn thử gửi.
+
+---
+
+Cần bổ sung phần hướng dẫn khác hoặc muốn tôi tạo script khởi động nhanh (`run.bat` / `start.ps1`)?
+
+
 
