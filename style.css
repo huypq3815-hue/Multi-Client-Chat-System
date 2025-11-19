@@ -109,6 +109,12 @@ code {
   pointer-events: auto;
 }
 
+/* Chat screen should fill the viewport (not be vertically centered like login) */
+#chat-screen.screen {
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
 /* ===== LOGIN CARD ===== */
 .login-card {
   width: 420px;

@@ -31,7 +31,9 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <h3>Online Users</h3>
-        <button id="themeToggle" class="theme-toggle" title="Toggle dark mode">🌙</button>
+        <div class="sidebar-actions">
+          <button id="themeToggle" class="theme-toggle" title="Toggle dark mode">🌙</button>
+        </div>
       </div>
       <ul id="userList" class="user-list"></ul>
     </aside>
@@ -54,14 +56,23 @@
       </div>
 
       <footer class="composer">
-        <input
-          type="text"
+        <div class="composer-left">
+          <button id="sidebarToggle" class="btn-icon" title="Toggle users">☰</button>
+        </div>
+        <textarea
           id="msgInput"
           placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
           autocomplete="off"
-        />
-        <button id="sendBtn" class="btn-send" title="Send message">Send</button>
+        ></textarea>
+        <div class="composer-actions">
+          <button id="attachBtn" class="btn-icon" title="Attach file">📎</button>
+          <button id="emojiBtn" class="btn-icon" title="Emoji picker">😊</button>
+          <button id="sendBtn" class="btn-send" title="Send message">Send</button>
+        </div>
       </footer>
+
+      <!-- Emoji picker (populated by JS if missing) -->
+      <div id="emojiPicker" class="emoji-picker hidden" aria-hidden="true"></div>
     </main>
   </div>
 
