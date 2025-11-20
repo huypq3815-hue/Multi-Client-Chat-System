@@ -28,6 +28,13 @@ class ChatClient {
     this.sidebarToggle = this.$('sidebarToggle');
     this.sidebar = document.querySelector('.sidebar');
 
+    // Kiểm tra các elements quan trọng
+    if (!this.loginScreen || !this.chatScreen || !this.btnConnect || !this.inputUser) {
+      console.error('Missing required HTML elements!');
+      alert('Lỗi: Thiếu các phần tử HTML cần thiết. Vui lòng kiểm tra lại file HTML.');
+      return;
+    }
+
     this.typingUsers = new Set();
     this.typingTimer = null;
     this.userColors = {};
@@ -118,25 +125,50 @@ class ChatClient {
   }
 
   connectWebSocket() {
-    // Kết nối trực tiếp tới server Python đang chạy ở port 6789
-    this.ws = new WebSocket("ws://127.0.0.1:6789");
-    // Assign handlers once (avoid duplicate assignments)
-    this.ws.onopen = () => {
-      this.reconnectAttempts = 0;
-      this.setStatus('online', 'Connected');
-      this.send({ type: 'login', username: this.username });
-    };
+    try {
+      // Kết nối trực tiếp tới server Python đang chạy ở port 6789
+      this.ws = new WebSocket("ws://127.0.0.1:6789");
+      
+      // Assign handlers once (avoid duplicate assignments)
+      this.ws.onopen = () => {
+        this.reconnectAttempts = 0;
+        this.setStatus('online', 'Connected');
+        this.send({ type: 'login', username: this.username });
+        console.log('WebSocket connected successfully');
+      };
 
-    this.ws.onmessage = (evt) => this.handleMessage(JSON.parse(evt.data));
-    this.ws.onclose = () => this.handleDisconnect();
-    this.ws.onerror = () => this.appendSystem('Connection error');
+      this.ws.onmessage = (evt) => {
+        try {
+          this.handleMessage(JSON.parse(evt.data));
+        } catch (err) {
+          console.error('Error parsing message:', err);
+        }
+      };
+      
+      this.ws.onclose = (event) => {
+        console.log('WebSocket closed:', event.code, event.reason);
+        this.handleDisconnect();
+      };
+      
+      this.ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        this.setStatus('offline', 'Connection error');
+        this.showToast('Không thể kết nối tới server. Vui lòng kiểm tra server có đang chạy không.', 'error');
+      };
+    } catch (err) {
+      console.error('Error creating WebSocket:', err);
+      this.setStatus('offline', 'Connection failed');
+      this.showToast('Lỗi khi tạo kết nối WebSocket', 'error');
+    }
   }
 
   handleMessage(msg) {
     switch (msg.type) {
       case 'user_list':
         this.renderUserList(msg.users);
-        this.userCount.textContent = `${msg.users.length} online`;
+        if (this.userCount) {
+          this.userCount.textContent = `${msg.users.length} online`;
+        }
         break;
       case 'system':
         this.appendSystem(msg.text);
@@ -169,6 +201,8 @@ class ChatClient {
   }
 
   renderUserList(users) {
+    if (!this.userListEl) return;
+    
     this.userListEl.innerHTML = '';
     users.forEach(u => {
       const color = this.getUserColor(u);
@@ -193,6 +227,8 @@ class ChatClient {
   }
 
   appendMessage(from, text, isMine, time, isPrivate = false, privateTo = null) {
+    if (!this.messagesEl) return;
+    
     let file = null;
     if (arguments.length >= 7) file = arguments[6];
     const row = document.createElement('div');
@@ -258,6 +294,8 @@ class ChatClient {
   }
 
   appendSystem(text) {
+    if (!this.messagesEl) return;
+    
     const row = document.createElement('div');
     row.className = 'msg-row system';
     const msg = document.createElement('div');
@@ -310,10 +348,15 @@ class ChatClient {
   }
 
   updateTypingIndicator() {
+    if (!this.typingIndicator) return;
+    
     if (this.typingUsers.size > 0) {
       const names = Array.from(this.typingUsers).slice(0, 3).join(', ');
       const more = this.typingUsers.size > 3 ? ` and ${this.typingUsers.size - 3} more` : '';
-      this.typingIndicator.querySelector('.typing-text').textContent = `${names}${more} ${this.typingUsers.size > 1 ? 'are' : 'is'} typing...`;
+      const typingText = this.typingIndicator.querySelector('.typing-text');
+      if (typingText) {
+        typingText.textContent = `${names}${more} ${this.typingUsers.size > 1 ? 'are' : 'is'} typing...`;
+      }
       this.typingIndicator.classList.remove('hidden');
     } else {
       this.typingIndicator.classList.add('hidden');
@@ -322,22 +365,34 @@ class ChatClient {
 
   handleDisconnect() {
     this.setStatus('offline', 'Disconnected');
-    this.appendSystem('Reconnecting...');
+    if (this.reconnectAttempts === 0) {
+      // Chỉ hiển thị thông báo lần đầu
+      this.appendSystem('Disconnected from server');
+    }
+    
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      setTimeout(() => this.connectWebSocket(), this.reconnectDelay * this.reconnectAttempts);
+      const delay = this.reconnectDelay * this.reconnectAttempts;
+      console.log(`Reconnecting attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`);
+      this.appendSystem(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      setTimeout(() => this.connectWebSocket(), delay);
     } else {
-      this.showToast('Reconnect failed. Refresh page.', 'error');
+      this.appendSystem('Reconnect failed. Please check if server is running and refresh the page.');
+      this.showToast('Không thể kết nối lại. Vui lòng kiểm tra server có đang chạy không (port 6789) và làm mới trang.', 'error');
     }
   }
 
   setStatus(type, text) {
-    this.statusEl.className = `status ${type}`;
-    this.statusEl.textContent = text;
+    if (this.statusEl) {
+      this.statusEl.className = `status ${type}`;
+      this.statusEl.textContent = text;
+    }
   }
 
   scrollToBottom() {
-    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+    if (this.messagesEl) {
+      this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+    }
   }
 
   formatTime(iso) {
@@ -475,5 +530,21 @@ class ChatClient {
   }
 }
 
-// Start
-new ChatClient();
+// Start - đợi DOM load xong
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      new ChatClient();
+    } catch (err) {
+      console.error('Error initializing ChatClient:', err);
+      alert('Lỗi khởi tạo ứng dụng: ' + err.message);
+    }
+  });
+} else {
+  try {
+    new ChatClient();
+  } catch (err) {
+    console.error('Error initializing ChatClient:', err);
+    alert('Lỗi khởi tạo ứng dụng: ' + err.message);
+  }
+}
