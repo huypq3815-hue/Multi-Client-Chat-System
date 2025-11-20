@@ -1,0 +1,80 @@
+2025-11-20 11:24:12,099 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 11:24:12,099 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 11:24:41,988 | INFO     | thien đã tham gia → 1 online
+2025-11-20 11:29:15,121 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 11:29:15,125 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 11:29:17,202 | INFO     | thien đã thoát → 0 online
+2025-11-20 11:29:57,641 | INFO     | thien đã tham gia → 1 online
+2025-11-20 11:29:58,706 | INFO     | thien đã thoát → 0 online
+2025-11-20 11:30:06,175 | INFO     | thien đã tham gia → 1 online
+2025-11-20 11:35:49,937 | INFO     | thomas đã tham gia → 2 online
+2025-11-20 11:35:50,419 | INFO     | thomas đã thoát → 1 online
+2025-11-20 11:35:50,601 | INFO     | thien đã thoát → 0 online
+2025-11-20 11:35:54,727 | INFO     | thomas đã tham gia → 1 online
+2025-11-20 11:36:09,337 | INFO     | thomas đã thoát → 0 online
+2025-11-20 11:42:08,448 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 11:42:08,465 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 11:43:47,704 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 11:43:47,723 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 11:43:58,062 | INFO     | thien đã tham gia → 1 online
+2025-11-20 11:45:21,437 | INFO     | thomas đã tham gia → 2 online
+2025-11-20 11:45:22,332 | INFO     | thomas đã thoát → 1 online
+2025-11-20 11:45:22,343 | INFO     | thien đã thoát → 0 online
+2025-11-20 11:45:22,362 | ERROR    | Error sending to index:0: received 1001 (going away); then sent 1001 (going away)
+2025-11-20 11:45:25,653 | INFO     | thomas đã tham gia → 1 online
+2025-11-20 11:47:48,604 | INFO     | thomas đã thoát → 0 online
+2025-11-20 11:56:46,269 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 11:56:46,274 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 12:02:21,272 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 12:02:21,272 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 12:02:59,849 | INFO     | thienj đã tham gia → 1 online
+2025-11-20 12:03:23,282 | INFO     | thiena đã tham gia → 2 online
+2025-11-20 12:03:23,707 | INFO     | thiena đã thoát → 1 online
+2025-11-20 12:03:23,981 | INFO     | ConnectionClosed(code=1006, reason=) for user=thienj
+2025-11-20 12:03:23,982 | INFO     | thienj đã thoát → 0 online
+2025-11-20 12:03:30,240 | INFO     | thiena đã tham gia → 1 online
+2025-11-20 12:03:33,915 | INFO     | thienj đã tham gia → 2 online
+2025-11-20 12:03:34,187 | INFO     | thienj đã thoát → 1 online
+2025-11-20 12:03:34,504 | INFO     | thiena đã thoát → 0 online
+2025-11-20 12:03:42,047 | INFO     | thieenj đã tham gia → 1 online
+2025-11-20 12:03:45,278 | INFO     | thithisdfd đã tham gia → 2 online
+2025-11-20 12:03:45,671 | INFO     | thieenj đã thoát → 1 online
+2025-11-20 12:03:45,677 | INFO     | thithisdfd đã thoát → 0 online
+2025-11-20 12:03:51,517 | INFO     | dsdasd đã tham gia → 1 online
+2025-11-20 12:03:54,300 | INFO     | dsada đã tham gia → 2 online
+2025-11-20 12:03:54,525 | INFO     | dsada đã thoát → 1 online
+2025-11-20 12:03:54,586 | INFO     | dsdasd đã thoát → 0 online
+2025-11-20 12:14:44,799 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 12:14:44,802 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 12:16:04,529 | INFO     | thien đã tham gia → 1 online
+2025-11-20 12:16:07,887 | INFO     | thienaz đã tham gia → 2 online
+2025-11-20 12:16:09,043 | INFO     | thien đã thoát → 1 online
+2025-11-20 12:16:09,047 | INFO     | thienaz đã thoát → 0 online
+2025-11-20 12:16:09,258 | WARNING  | Error sending to thienaz: received 1001 (going away); then sent 1001 (going away)
+2025-11-20 12:16:09,260 | INFO     | Removed disconnected user: thienaz
+2025-11-20 12:18:05,299 | INFO     | thomas đã tham gia → 1 online
+2025-11-20 12:18:10,209 | INFO     | edison đã tham gia → 2 online
+2025-11-20 12:18:11,351 | INFO     | thomas đã thoát → 1 online
+2025-11-20 12:18:11,359 | INFO     | edison đã thoát → 0 online
+2025-11-20 12:18:11,364 | WARNING  | Error sending to edison: received 1001 (going away); then sent 1001 (going away)
+2025-11-20 12:18:11,374 | INFO     | Removed disconnected user: edison
+2025-11-20 12:19:45,363 | INFO     | sdsada đã tham gia → 1 online
+2025-11-20 12:20:06,256 | INFO     | edsdas đã tham gia → 2 online
+2025-11-20 12:20:06,845 | INFO     | edsdas đã thoát → 1 online
+2025-11-20 12:20:06,899 | INFO     | ConnectionClosed(code=1006, reason=) for user=sdsada
+2025-11-20 12:20:06,903 | INFO     | sdsada đã thoát → 0 online
+2025-11-20 12:20:09,925 | INFO     | eweqwd đã tham gia → 1 online
+2025-11-20 12:20:20,797 | INFO     | eweqwd đã thoát → 0 online
+2025-11-20 12:26:41,901 | INFO     | thien đã tham gia → 1 online
+2025-11-20 12:27:03,274 | INFO     | thomas đã tham gia → 2 online
+2025-11-20 12:27:03,531 | INFO     | thien đã thoát → 1 online
+2025-11-20 12:27:03,612 | INFO     | ConnectionClosed(code=1006, reason=) for user=thomas
+2025-11-20 12:27:03,614 | INFO     | thomas đã thoát → 0 online
+2025-11-20 12:32:53,560 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 12:32:53,564 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 12:33:17,697 | INFO     | thien tham gia → tổng session: 1
+2025-11-20 12:33:31,829 | INFO     | chat tham gia → tổng session: 2
+2025-11-20 12:33:32,031 | INFO     | thien đã thoát → tổng session còn: 1
+2025-11-20 12:33:41,514 | INFO     | asdasd tham gia → tổng session: 2
+2025-11-20 12:34:00,603 | INFO     | asdasd đã thoát → tổng session còn: 1
+2025-11-20 12:34:01,769 | INFO     | chat đã thoát → tổng session còn: 0
