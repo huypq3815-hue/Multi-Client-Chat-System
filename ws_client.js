@@ -184,7 +184,8 @@ class ChatClient {
         break;
       case 'private':
         const isMine = msg.from === this.username;
-        this.appendMessage(msg.from, msg.text, isMine, msg.time, true);
+        const privateTo = msg.to || null;
+        this.appendMessage(msg.from, msg.text, isMine, msg.time, true, privateTo, msg.file || null);
         break;
       case 'typing':
         if (msg.isTyping) this.typingUsers.add(msg.from);
@@ -226,11 +227,8 @@ class ChatClient {
     });
   }
 
-  appendMessage(from, text, isMine, time, isPrivate = false, privateTo = null) {
+  appendMessage(from, text, isMine, time, isPrivate = false, privateTo = null, file = null) {
     if (!this.messagesEl) return;
-    
-    let file = null;
-    if (arguments.length >= 7) file = arguments[6];
     const row = document.createElement('div');
     row.className = `msg-row ${isMine ? 'mine' : ''}`;
     const color = this.getUserColor(from);
@@ -483,7 +481,8 @@ class ChatClient {
       const end = Math.min(start + chunkSize, file.size);
       const blob = file.slice(start, end);
       const b64 = await this.blobToBase64(blob);
-      this.send({ type: 'file_chunk', upload_id, index: i, total, data: b64, name: file.name, type: file.type, size: file.size });
+      // Use `file_type` for the MIME type to avoid clobbering the message `type` field
+      this.send({ type: 'file_chunk', upload_id, index: i, total, data: b64, name: file.name, file_type: file.type, size: file.size });
       // optional small throttle
       await new Promise(r => setTimeout(r, 10));
     }
@@ -542,7 +541,7 @@ if (document.readyState === 'loading') {
   });
 } else {
   try {
-new ChatClient();
+    new ChatClient();
   } catch (err) {
     console.error('Error initializing ChatClient:', err);
     alert('Lỗi khởi tạo ứng dụng: ' + err.message);

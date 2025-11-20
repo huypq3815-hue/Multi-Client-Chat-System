@@ -34,6 +34,10 @@ RATE_LIMIT_SECONDS = 2
 LOG_FILE = "chat.log"
 
 ADMINS = {"admin", "mod"}
+ADMINS_LOWER = {a.lower() for a in ADMINS}
+
+# Monotonic message sequence id (keeps ids simple and efficient)
+MESSAGE_SEQ = 0
 
 # ================= LOGGING =================
 logger = logging.getLogger("ChatSphere")
@@ -61,13 +65,17 @@ def now_iso():
     return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
 def generate_id():
-    return f"msg_{len(HIST.all())+1:06d}"
+    global MESSAGE_SEQ
+    MESSAGE_SEQ += 1
+    return f"msg_{MESSAGE_SEQ:06d}"
 
 def is_valid_username(name: str) -> bool:
     return bool(name and len(name) <= MAX_USERNAME_LEN and re.match(r'^[a-zA-Z0-9_\-\.]+$', name))
 
 def is_admin(username: str) -> bool:
-    return username.lower() in (a.lower() for a in ADMINS)
+    if not username:
+        return False
+    return username.lower() in ADMINS_LOWER
 
 def load_history():
     try:
@@ -223,21 +231,34 @@ async def handle_file_chunk(ws, data: dict, username: str):
     except Exception:
         return
     b64 = data.get('data')
-    meta = {'name': data.get('name', ''), 'type': data.get('type', ''), 'size': data.get('size', 0)}
+    # client uses `file_type` to avoid clobbering the top-level `type` field
+    meta = {'name': data.get('name', ''), 'type': data.get('file_type', '') or data.get('type', ''), 'size': data.get('size', 0)}
     if not (upload_id and b64 and total > 0):
         return
 
     try:
+        logger.info("Receiving file chunk %s/%s upload_id=%s from=%s", index+1, total, upload_id, username)
         raw, meta_ret = ft_add_chunk(upload_id, index, total, b64, meta)
-        logger.debug(f"Received file_chunk upload_id={upload_id} index={index}/{total} from={username}")
     except Exception as e:
         logger.error(f"Error in ft_add_chunk for upload_id={upload_id}: {e}")
         logger.debug(traceback.format_exc())
+        try:
+            await ws.send(json.dumps({"type": "file_error", "upload_id": upload_id, "text": "Server error processing chunk"}, ensure_ascii=False))
+        except Exception:
+            pass
         return
 
     cleanup_expired()
 
+    # send a per-chunk ack to uploader so client can show progress
+    try:
+        await ws.send(json.dumps({"type": "file_ack", "upload_id": upload_id, "index": index, "total": total}, ensure_ascii=False))
+    except Exception:
+        pass
+
     if raw is not None:
+        if not meta_ret:
+            meta_ret = meta or {}
         logger.info(f"File assembled upload_id={upload_id} name={meta_ret.get('name','')} size={len(raw)} from={username}")
         if len(raw) > MAX_FILE_SIZE:
             await ws.send(json.dumps({"type": "error", "text": "File quá lớn (>3MB)"}, ensure_ascii=False))
@@ -255,6 +276,11 @@ async def handle_file_chunk(ws, data: dict, username: str):
             }
         }
         add_to_history(msg)
+        # notify uploader that file is complete (and size)
+        try:
+            await ws.send(json.dumps({"type": "file_complete", "upload_id": upload_id, "name": meta_ret.get('name',''), "size": len(raw)}, ensure_ascii=False))
+        except Exception:
+            pass
         try:
             await broadcast(msg)
         except Exception as e:
@@ -301,6 +327,11 @@ async def handler(ws):
                 continue
 
             typ = data.get("type")
+            # log incoming message types for debugging file transfer issues
+            try:
+                logger.info("Incoming msg type=%s from=%s", typ, username or '<anon>')
+            except Exception:
+                pass
 
             if typ == "login" and username is None:
                 username = await handle_login(ws, data)

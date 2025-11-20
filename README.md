@@ -27,107 +27,82 @@ multi_chat/
 │ └── chat_history.db # CSDL lưu lịch sử chat (SQLite)
 │
 ├── client/
-│ └── client_tk.py # Giao diện chat bằng Tkinter
-│
-├── grpc/
-│ ├── proto/
-│ │ └── chat.proto # Định nghĩa gRPC service
-│ └── grpc_server.py # Server gRPC để query danh sách user/lịch sử
-│
-├── websocket_gateway/
-│ └── ws_gateway.py # Gateway WebSocket (cho client web)
-│
-├── requirements.txt
-├── .gitignore
-└── README.md
+```markdown
+# HỆ THỐNG CHAT ĐA NỀN TẢNG (Multi-Client Chat System)
 
+Phiên bản chứa một server WebSocket viết bằng Python và một client web tĩnh. Mục tiêu: demo chat nhóm, chat riêng, gửi file theo chunk, lưu lịch sử, và tùy chọn kích hoạt WSS khi có `cert.pem`/`key.pem`.
 
+--
 
----
+## Tính năng chính
+- Chat nhóm (broadcast)
+- Chat riêng tư giữa hai người (nhập `@username message`)
+- Gửi file theo chunk (assembled on server)
+- Hiển thị danh sách người đang online + typing indicator
+- Lưu lịch sử (file JSON) và giới hạn lịch sử
+- Hỗ trợ WSS nếu cung cấp `cert.pem` / `key.pem`
 
-##  Công nghệ sử dụng
-| Thành phần      | Công nghệ               | Mục đích |
-|-----------------|------------             |----------|
-| Giao tiếp mạng  | **TCP Socket, SSL/TLS** | Truyền dữ liệu thời gian thực và bảo mật |
-| Xử lý song song | **Threading**           | Mỗi client là một luồng độc lập |
-| CSDL            | **SQLite3**             | Lưu lịch sử trò chuyện |
-| Giao diện       | **Tkinter (Python GUI)**| Chat nhóm, chat riêng |
-| API mở rộng     | **gRPC**                | Lấy danh sách người dùng và lịch sử |
-| Chat qua web    | **WebSocket (aiohttp)** | Cho phép chat bằng trình duyệt |
+--
 
----
+## Yêu cầu
+- Python 3.8+
+- Một virtualenv khuyến nghị (tự động kích hoạt nếu `.venv` tồn tại)
+- Packages: `websockets`, `cryptography` (nếu bạn tạo certs)
 
-## Hướng dẫn chạy (Demo nhanh trên Windows / PowerShell)
-
-Các bước dưới đây giả định bạn đang ở thư mục dự án `Multi-Client-Chat-System`.
-
-1) Chuẩn bị môi trường (một lần):
+Ví dụ cài nhanh:
 
 ```powershell
-# chuyển vào thư mục dự án
-cd "..."
-
-# (tùy chọn) tạo virtualenv và kích hoạt
 python -m venv .venv
 . .venv\Scripts\Activate.ps1
-
-# cài dependencies cơ bản
 python -m pip install --upgrade pip
-python -m pip install websockets
+python -m pip install websockets cryptography
 ```
 
-2) Chạy WebSocket server (server Python sẽ lắng nghe trên `ws://0.0.0.0:6789`):
+--
+
+## Cấu trúc chính (tóm tắt)
+- `index.html`, `style.css`, `ws_client.js` — client web tĩnh
+- `server/ws_server.py` — WebSocket server (entry)
+- `server/history_manager.py` — quản lý lịch sử (in-memory + persist JSON)
+- `server/file_transfer.py` — ghép chunk upload tạm thời
+- `create_cert.py` — tạo `cert.pem`/`key.pem` (tùy chọn)
+
+--
+
+## Chạy nhanh (Quick Start)
+
+Lưu ý: các lệnh dưới giả định bạn đang ở thư mục dự án `Multi-Client-Chat-System`.
+
+1) Kích hoạt virtualenv (nếu dùng):
 
 ```powershell
-python .\ws_server.py
-# Dùng Ctrl+C để dừng server
+cd "C:\path\to\Multi-Client-Chat-System"
+. .venv\Scripts\Activate.ps1
 ```
 
-3) Mở client web (trình duyệt):
+2) Khởi server WebSocket (2 cách):
 
-Bạn cần serve `index.html` từ thư mục chứa file — không chạy `http.server` từ thư mục khác (sẽ báo 404).
+- Chạy trực tiếp:
 
 ```powershell
-# Từ cùng thư mục dự án
+python .\server\ws_server.py
+```
+
+- Hoặc chạy như module (khuyến nghị khi chạy trong project root):
+
+```powershell
+python -m server.ws_server
+```
+
+3) Serve client (từ thư mục dự án) và mở trang web:
+
+```powershell
 python -m http.server 8000 --directory .
-# Mở trình duyệt tới: http://localhost:8000/index.html
+# Mở: http://localhost:8000/index.html
 ```
 
-4) Dùng giao diện web:
 
-- Nhập `username` rồi bấm `Join Chat`.
-- Dùng nút đính kèm (📎) để chọn file, file sẽ được gửi theo chunk và sau khi server lắp lại sẽ hiển thị như một tin nhắn có link tải xuống.
 
-5) Kiểm tra log & debug:
-
-- File log nằm ở `chat.log` trong cùng thư mục; để xem realtime dùng PowerShell:
-
-```powershell
-Get-Content .\chat.log -Wait -Tail 200
-```
-
-- Nếu upload không thành công, kiểm tra:
-	- Kiểm tra console của trình duyệt (F12) để xem WebSocket errors.
-	- Đảm bảo server Python (ws_server.py) đang chạy và không báo lỗi.
-	- Kiểm tra giới hạn kích thước file: hiện tại tối đa là 3MB (hạn chế trong `ws_server.py` -> `MAX_FILE_SIZE`).
-
-6) Chạy server ở background (tùy chọn):
-
-```powershell
-Start-Process -FilePath python -ArgumentList '.\ws_server.py' -PassThru | ForEach-Object { $_.Id } > server_pid.txt
-# Dừng bằng Stop-Process -Id <PID>
-```
-
-7) Dọn dẹp: tôi đã xóa các script tạm (`test_client.py`, `repro_clients.py`, `server/ft_test.py`) khỏi repo.
-
-Nếu bạn gặp lỗi cụ thể khi gửi file (ví dụ toast báo "Upload queued" nhưng file không xuất hiện ở chat), hãy gửi cho tôi:
-- Đoạn log `chat.log` tại thời điểm upload;
-- Console log của trình duyệt (F12) — đặc biệt WebSocket close code/reason;
-- Tên file và kích thước bạn thử gửi.
-
----
-
-Cần bổ sung phần hướng dẫn khác hoặc muốn tôi tạo script khởi động nhanh (`run.bat` / `start.ps1`)?
 
 
 

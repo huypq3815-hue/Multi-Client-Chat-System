@@ -1,0 +1,39 @@
+2025-11-20 14:32:27,435 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 14:32:27,436 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 14:33:13,364 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-20 14:33:13,364 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 14:33:31,834 | INFO     | Incoming msg type=login from=<anon>
+2025-11-20 14:33:31,834 | INFO     | Pan tham gia → tổng session: 1
+2025-11-20 14:33:34,577 | INFO     | Incoming msg type=login from=<anon>
+2025-11-20 14:33:34,577 | INFO     | Hi tham gia → tổng session: 2
+2025-11-20 14:33:40,384 | INFO     | Incoming msg type=login from=<anon>
+2025-11-20 14:33:40,385 | INFO     | Huy tham gia → tổng session: 3
+2025-11-20 14:33:46,925 | INFO     | Incoming msg type=typing from=Pan
+2025-11-20 14:33:47,088 | INFO     | Incoming msg type=typing from=Pan
+2025-11-20 14:33:47,373 | INFO     | Incoming msg type=typing from=Pan
+2025-11-20 14:33:47,578 | INFO     | Incoming msg type=typing from=Pan
+2025-11-20 14:33:48,113 | INFO     | Incoming msg type=typing from=Pan
+2025-11-20 14:33:48,401 | INFO     | Incoming msg type=group from=Pan
+2025-11-20 14:33:48,402 | INFO     | Incoming msg type=typing from=Pan
+2025-11-20 14:33:50,325 | INFO     | Incoming msg type=typing from=Hi
+2025-11-20 14:33:50,492 | INFO     | Incoming msg type=typing from=Hi
+2025-11-20 14:33:51,504 | INFO     | Incoming msg type=typing from=Hi
+2025-11-20 14:33:51,542 | INFO     | Incoming msg type=group from=Hi
+2025-11-20 14:33:51,543 | INFO     | Incoming msg type=typing from=Hi
+2025-11-20 14:33:57,225 | INFO     | Incoming msg type=typing from=Huy
+2025-11-20 14:33:57,346 | INFO     | Incoming msg type=typing from=Huy
+2025-11-20 14:33:57,671 | INFO     | Incoming msg type=group from=Huy
+2025-11-20 14:33:57,672 | INFO     | Incoming msg type=typing from=Huy
+2025-11-20 14:34:07,386 | INFO     | Incoming msg type=typing from=Pan
+2025-11-20 14:34:08,165 | INFO     | Incoming msg type=private from=Pan
+2025-11-20 14:34:08,166 | INFO     | Incoming msg type=typing from=Pan
+2025-11-20 14:35:00,449 | INFO     | Incoming msg type=file_chunk from=Pan
+2025-11-20 14:35:00,449 | INFO     | Receiving file chunk 1/2 upload_id=Pan_1763624100446_8itf6l from=Pan
+2025-11-20 14:35:00,459 | INFO     | Incoming msg type=file_chunk from=Pan
+2025-11-20 14:35:00,460 | INFO     | Receiving file chunk 2/2 upload_id=Pan_1763624100446_8itf6l from=Pan
+2025-11-20 14:35:00,460 | INFO     | File assembled upload_id=Pan_1763624100446_8itf6l name=cat.jpg size=6869 from=Pan
+2025-11-20 14:35:49,189 | INFO     | Hi đã thoát → tổng session còn: 2
+2025-11-20 14:35:49,397 | INFO     | Huy đã thoát → tổng session còn: 1
+2025-11-20 14:35:49,647 | INFO     | Pan đã thoát → tổng session còn: 0
+2025-11-20 14:35:52,003 | INFO     | Đã lưu lịch sử
+2025-11-20 14:35:52,004 | INFO     | Server đã dừng. Tạm biệt!

@@ -1,7 +1,10 @@
 import base64
 import threading
 import time
+import logging
 from collections import defaultdict
+
+logger = logging.getLogger("ChatSphere.file_transfer")
 
 # Temporary uploads storage. Keyed by upload_id.
 # Each entry: { 'meta': {...}, 'chunks': dict(index->data), 'total': int, 'created': timestamp }
@@ -24,19 +27,30 @@ def add_chunk(upload_id: str, index: int, total: int, data_b64: str, meta: dict 
         if not ent:
             ent = {'meta': meta or {}, 'chunks': {}, 'total': total, 'created': time.time()}
             _UPLOADS[upload_id] = ent
+            logger.debug("Created new upload entry %s total=%s meta=%s", upload_id, total, bool(meta))
+        # store chunk
         ent['chunks'][index] = data_b64
         ent['total'] = total
+        logger.debug("Received chunk %s/%s for upload_id=%s (stored=%d)", index+1, total, upload_id, len(ent['chunks']))
 
+        # When we have all parts, assemble in index order
         if len(ent['chunks']) == total:
-            # assemble: decode each base64 part separately then join bytes
-            parts = [ent['chunks'][i] for i in range(total)]
+            parts = []
             try:
+                for i in range(total):
+                    if i not in ent['chunks']:
+                        raise KeyError(f"Missing chunk {i}")
+                    parts.append(ent['chunks'][i])
                 decoded_parts = [base64.b64decode(p) for p in parts]
                 raw = b''.join(decoded_parts)
-            except Exception:
+            except Exception as e:
+                logger.error("Failed to assemble upload_id=%s: %s", upload_id, e)
                 raw = None
             # cleanup
-            del _UPLOADS[upload_id]
+            try:
+                del _UPLOADS[upload_id]
+            except KeyError:
+                pass
             return raw, ent.get('meta')
     return None, None
 
