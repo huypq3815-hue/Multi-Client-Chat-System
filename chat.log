@@ -1,0 +1,13 @@
+2025-11-19 22:03:03,567 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-19 22:03:03,568 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-19 22:03:38,751 | INFO     | Pan đã tham gia → 1 online
+2025-11-19 22:03:42,817 | INFO     | Huy đã tham gia → 2 online
+2025-11-19 22:03:50,454 | INFO     | Tien đã tham gia → 3 online
+2025-11-19 22:06:20,003 | INFO     | Đã lưu lịch sử
+2025-11-19 22:06:20,004 | INFO     | Pan đã thoát → 2 online
+2025-11-19 22:06:20,004 | INFO     | Huy đã thoát → 1 online
+2025-11-19 22:06:20,005 | INFO     | Tien đã thoát → 0 online
+2025-11-19 22:06:20,005 | ERROR    | Error sending to index:0: sent 1001 (going away); then received 1001 (going away)
+2025-11-19 22:06:20,044 | ERROR    | Error sending to index:0: sent 1001 (going away); then received 1001 (going away)
+2025-11-19 22:06:20,044 | ERROR    | Error sending to index:1: sent 1001 (going away); then received 1001 (going away)
+2025-11-19 22:06:20,045 | INFO     | Server đã dừng. Tạm biệt!

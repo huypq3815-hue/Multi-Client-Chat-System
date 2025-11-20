@@ -1,0 +1,49 @@
+[
+  {
+    "type": "system",
+    "text": "Pan đã tham gia phòng chat",
+    "time": "2025-11-19T15:03:38Z",
+    "id": "msg_000001"
+  },
+  {
+    "type": "system",
+    "text": "Huy đã tham gia phòng chat",
+    "time": "2025-11-19T15:03:42Z",
+    "id": "msg_000002"
+  },
+  {
+    "type": "system",
+    "text": "Tien đã tham gia phòng chat",
+    "time": "2025-11-19T15:03:50Z",
+    "id": "msg_000003"
+  },
+  {
+    "type": "group",
+    "from": "Pan",
+    "text": "hello",
+    "id": "msg_000004",
+    "time": "2025-11-19T15:03:55Z"
+  },
+  {
+    "type": "group",
+    "from": "Huy",
+    "text": "hi",
+    "id": "msg_000005",
+    "time": "2025-11-19T15:03:58Z"
+  },
+  {
+    "type": "group",
+    "from": "Tien",
+    "text": "sup",
+    "id": "msg_000006",
+    "time": "2025-11-19T15:04:06Z"
+  },
+  {
+    "type": "private",
+    "from": "Pan",
+    "to": "Huy",
+    "text": "😭",
+    "time": "2025-11-19T15:04:20Z",
+    "id": "msg_000007"
+  }
+]
