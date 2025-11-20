@@ -126,16 +126,16 @@ class ChatClient {
 
   connectWebSocket() {
     try {
-      // Kết nối trực tiếp tới server Python đang chạy ở port 6789
-      this.ws = new WebSocket("ws://127.0.0.1:6789");
+    // Kết nối trực tiếp tới server Python đang chạy ở port 6789
+    this.ws = new WebSocket("ws://127.0.0.1:6789");
       
-      // Assign handlers once (avoid duplicate assignments)
-      this.ws.onopen = () => {
-        this.reconnectAttempts = 0;
-        this.setStatus('online', 'Connected');
-        this.send({ type: 'login', username: this.username });
+    // Assign handlers once (avoid duplicate assignments)
+    this.ws.onopen = () => {
+      this.reconnectAttempts = 0;
+      this.setStatus('online', 'Connected');
+      this.send({ type: 'login', username: this.username });
         console.log('WebSocket connected successfully');
-      };
+    };
 
       this.ws.onmessage = (evt) => {
         try {
@@ -167,7 +167,7 @@ class ChatClient {
       case 'user_list':
         this.renderUserList(msg.users);
         if (this.userCount) {
-          this.userCount.textContent = `${msg.users.length} online`;
+        this.userCount.textContent = `${msg.users.length} online`;
         }
         break;
       case 'system':
@@ -384,14 +384,14 @@ class ChatClient {
 
   setStatus(type, text) {
     if (this.statusEl) {
-      this.statusEl.className = `status ${type}`;
-      this.statusEl.textContent = text;
+    this.statusEl.className = `status ${type}`;
+    this.statusEl.textContent = text;
     }
   }
 
   scrollToBottom() {
     if (this.messagesEl) {
-      this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
     }
   }
 
@@ -542,7 +542,7 @@ if (document.readyState === 'loading') {
   });
 } else {
   try {
-    new ChatClient();
+new ChatClient();
   } catch (err) {
     console.error('Error initializing ChatClient:', err);
     alert('Lỗi khởi tạo ứng dụng: ' + err.message);

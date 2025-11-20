@@ -1,14 +1,17 @@
-2025-11-20 11:58:53,444 | INFO     | Đã tải 0 tin nhắn từ lịch sử
-2025-11-20 11:58:53,459 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
-2025-11-20 11:59:28,850 | INFO     | tien đã tham gia → 1 online
-2025-11-20 11:59:34,955 | INFO     | tien đã thoát → 0 online
-2025-11-20 11:59:42,838 | INFO     | tien đã tham gia → 1 online
-2025-11-20 12:00:28,870 | INFO     | tien đã thoát → 0 online
-2025-11-20 12:02:19,885 | INFO     | Đã tải 0 tin nhắn từ lịch sử
-2025-11-20 12:02:19,886 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
-2025-11-20 12:02:59,142 | INFO     | tien đã tham gia → 1 online
-2025-11-20 12:03:08,461 | INFO     | tien đã thoát → 0 online
-2025-11-20 12:07:13,563 | INFO     | Đã tải 0 tin nhắn từ lịch sử
-2025-11-20 12:07:13,563 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
-2025-11-20 12:07:42,789 | INFO     | tien đã tham gia → 1 online
-2025-11-20 12:08:07,394 | INFO     | tien đã thoát → 0 online
+2025-11-16 21:47:52 | INFO     | Server starting on ws://0.0.0.0:6789
+2025-11-16 21:53:01 | INFO     | cf connected (1 online)
+2025-11-16 21:59:47 | INFO     | cf disconnected (0 online)
+2025-11-19 14:56:57,130 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-19 15:05:37,939 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-19 15:07:33,503 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-19 15:08:21,289 | INFO     | Đã lưu lịch sử
+2025-11-19 15:08:21,290 | INFO     | Server đã dừng. Tạm biệt!
+2025-11-19 15:09:34,571 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-19 15:09:34,571 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-19 15:11:03,769 | INFO     | Đã tải 0 tin nhắn từ lịch sử
+2025-11-19 15:11:03,770 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-19 15:11:15,874 | INFO     | huy đã tham gia → 1 online
+2025-11-20 12:26:24,318 | INFO     | Đã tải 7 tin nhắn từ lịch sử
+2025-11-20 12:26:24,333 | INFO     | ChatSphere Server đang chạy tại ws://0.0.0.0:6789
+2025-11-20 12:27:03,355 | INFO     | tien đã tham gia → 1 online
+2025-11-20 12:27:39,769 | INFO     | tien đã thoát → 0 online
